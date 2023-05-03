@@ -52,4 +52,4 @@ If you have any questions or suggestions, please contact us.
 We appreciate all contributors and users of TopicTrack. Your support is greatly appreciated.
 
 ## License
-This project is licensed under the MIT license.
+This project is licensed under the [MIT license](https://github.com/henrique221/TopicTrack/blob/main/LICENSE.md).
