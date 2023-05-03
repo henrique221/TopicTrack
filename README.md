@@ -1,8 +1,8 @@
-# TopicTrack: Automatic Video Summarization by Leroy Merlin Brazil
+# TopicTrack: Automatic Video Summarization
 
 ## Description
 
-TopicTrack is a project under development by Leroy Merlin Brazil that aims to provide an effective tool for summarizing videos. The idea is that users can upload videos (such as meeting recordings or trainings) and get accurate transcriptions and summaries of these videos. In addition, TopicTrack is capable of creating summaries of specific topics within the video.
+TopicTrack is a project under development that aims to provide an effective tool for summarizing videos. The idea is that users can upload videos (such as meeting recordings or trainings) and get accurate transcriptions and summaries of these videos. In addition, TopicTrack is capable of creating summaries of specific topics within the video.
 
 ## Installation and Usage
 
@@ -37,4 +37,7 @@ If you have any questions or suggestions, please contact us.
 
 ## Acknowledgements
 
-We appreciate all contributors and users of TopicTrack. Your support is greatly appreciated. Thanks to Leroy Merlin Brazil for supporting this project.
+We appreciate all contributors and users of TopicTrack. Your support is greatly appreciated.
+
+## License
+This project is licensed under the MIT license.
