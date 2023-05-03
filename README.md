@@ -41,8 +41,7 @@ Replace "ExampleTitle" with the title of your video.
 
 ## Contributions
 
-This project is under development and all contributions are welcome. If you find a bug or want to add a new feature, feel free to create an issue or a pull request.
-If you have any questions or suggestions, please don't hesitate to open a pull request. We welcome all feedback and contributions.
+This project is under development and all contributions are welcome. If you find a bug or want to add a new feature, please don't hesitate to open a pull request. We welcome all feedback and contributions.
 
 ## Acknowledgements
 
