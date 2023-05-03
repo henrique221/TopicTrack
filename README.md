@@ -31,10 +31,6 @@ Replace "ExampleTitle" with the title of your video.
 
 This project is under development and all contributions are welcome. If you find a bug or want to add a new feature, feel free to create an issue or a pull request.
 
-## License
-
-This project is licensed under the MIT license.
-
 ## Contact
 
 If you have any questions or suggestions, please contact us.
