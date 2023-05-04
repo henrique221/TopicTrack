@@ -1,4 +1,8 @@
 .env
 my_project_env
 .idea/
-data/text.txt
+data/
+venv
+*.egg-info
+dist/
+__pycache__/
