@@ -18,26 +18,14 @@ Replace `your_api_key_here` with your actual OpenAI API key.
 
 ## Installation and Usage
 
-First of all, make sure you have Docker installed on your system.
+First of all, make sure you have Python and the required libraries installed on your system.
 
-To use TopicTrack, you will first need to place the video transcription into the text.txt file in the data folder.
-
-To build and run the Docker container, follow the steps below:
+To use TopicTrack, follow the steps below:
 
 1. Clone this repository on your local machine.
-2. In the project directory, build the Docker image using the provided Dockerfile:
-
-```bash
-docker build -t topictrack .
-```
-
-3. After building the image, you can start the container using the `docker run` command. To use the provided docker-compose.yml file, you can also use the `docker-compose up` command:
-
-```bash
-TITLE=ExampleTitle docker-compose up
-```
-
-Replace "ExampleTitle" with the title of your video.
+2. Run `execute.sh` (on Linux/macOS) or `execute.bat` (on Windows) in the project directory to set up the environment.
+3. Place the audio or video file you want to transcribe and summarize in the `data/media` folder.
+4. Run `execute.sh` (on Linux/macOS) or `execute.bat` (on Windows) again to transcribe the media file and generate the summary.
 
 ## Contributions
 
