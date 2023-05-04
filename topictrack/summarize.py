@@ -22,22 +22,33 @@ def split_text(text, n=1000):
     return [" ".join(words[i : i + n]) for i in range(0, len(words), n)]
 
 def summarize_text(file_path):
+    option = console.input(f'\nDo you wish to have a ...\nSummarize (S)\nImportant topics (I)\n').lower()
+
+    if(option != 's' and option != 'i'):
+        console.print(f'\n[bold red]You need to choose an option:\n[/bold red]')
+        summarize_text(file_path)
+
     with open(file_path, 'r') as f:
         text = f.read()
 
     title = console.input('[bold]Title of the video (optional):[/bold] ')
 
     total_words = len(text)
-    print(f"Quantidade de palavras: {total_words}")
+    print(f"Words count: {total_words}")
 
     if(total_words > 3900):
         text = split_transcription(text, title, openai_api_key)
     """Generates a summary of the text using the OpenAI API."""
     openai.api_key = openai_api_key
 
+    if(option == 's'):
+        custom = 'Faça um resumo detalhado em português brasileiro sobre o seguinte:'
+    elif(option == 'i'):
+        custom = 'cite alguns tópicos importantes sobre o seguinte texto e explique cada topico'
+
     response = openai.Completion.create(
         engine="text-davinci-003",
-        prompt=f"Titulo:{title}\n\n{text}\n\nFaça um resumo detalhado em português brasileiro sobre essa transcrição, cite alguns tópicos importantes e explique cada um.",
+        prompt=f"{custom}\nTitulo:{title}\n\n{text}\n",
         temperature=0.3,
         max_tokens=1000,
     )
@@ -177,7 +188,7 @@ def choose_text_file():
     return chosen_file
 
 def first_choice():
-    option = console.input('\n\n[bold][cyan]Do you wish to[/cyan]\n\ntranscript a media (M)\nsummarize a text (T)\n[/bold]').lower()
+    option = console.input('\n\n[bold][cyan]Do you wish to[/cyan]\n\n[cyan]Transcript a media (M)\nSummarize a text (T)[/cyan]\n[/bold]').lower()
     if(option != 't' and option != 'm'):
         return
     return option
