@@ -118,7 +118,7 @@ def run_whisper_command(chosen_video_path, language="Portuguese", output_dir="da
     command = f"whisper {chosen_video_path} --language {language} --output_dir {output_path} --verbose {verbose}"
 
     try:
-#         subprocess.run(command, shell=True, check=True)
+        subprocess.run(command, shell=True, check=True)
         print("Whisper command executed successfully.")
     except subprocess.CalledProcessError as e:
         print(f"An error occurred while running the Whisper command: {e}")
