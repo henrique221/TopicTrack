@@ -2,3 +2,7 @@
 my_project_env
 .idea/
 data/
+venv
+*.egg-info
+dist/
+__pycache__/

@@ -8,5 +8,5 @@ services:
     volumes:
       - .:/app
       - ./data:/data
-    command: python summarize.py /data/text.txt $TITLE
+    command: python topictrack/summarize.py /data/text.txt $TITLE
     tty: true
