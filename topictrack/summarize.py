@@ -5,21 +5,51 @@ import os
 import re
 import glob
 import subprocess
+import warnings
 
 from dotenv import load_dotenv
 from rich import print
 from rich.console import Console
 from tqdm import tqdm
+from summarizer import Summarizer
+from transformers import logging
 
 console = Console()
 
 load_dotenv()
 openai_api_key = os.getenv('OPENAI_API_KEY')  # Insert your API key here
 
-def split_text(text, n=1000):
-    """Splits the text into smaller parts with at most n words."""
+def split_text(text, max_length=2000):
+    """Splits the text into smaller parts."""
     words = text.split()
-    return [" ".join(words[i : i + n]) for i in range(0, len(words), n)]
+    parts = []
+    current_part = []
+
+    for word in words:
+        current_part.append(word)
+        if len(" ".join(current_part)) > max_length:
+            parts.append(" ".join(current_part[:-1]))
+            current_part = [word]
+
+    if current_part:
+        parts.append(" ".join(current_part))
+
+    return parts
+
+def save_summary(file_path, summary):
+    summary_dir = os.path.join("data", "summaries")
+    os.makedirs(summary_dir, exist_ok=True)
+
+    file_base, _ = os.path.splitext(os.path.basename(file_path))
+    summary_file_path = os.path.join(summary_dir, f"{file_base}_summary.txt")
+
+    with open(summary_file_path, "a") as f:
+        if os.stat(summary_file_path).st_size > 0:  # If the file is not empty
+            f.write("\n\n")  # Add two blank lines to separate summaries
+        f.write(summary)
+
+    print(f"Summary saved to: {summary_file_path}")
+
 
 def summarize_text(file_path):
     option = console.input(f'\nDo you wish to have a ...\nSummarize (S)\nImportant topics (I)\n').lower()
@@ -31,7 +61,7 @@ def summarize_text(file_path):
     with open(file_path, 'r') as f:
         text = f.read()
 
-    title = console.input('[bold]Title of the video (optional):[/bold] ')
+    title = console.input('\n[bold]Title of the video (optional):[/bold] ')
 
     total_words = len(text)
     print(f"Words count: {total_words}")
@@ -50,22 +80,22 @@ def summarize_text(file_path):
         engine="text-davinci-003",
         prompt=f"{custom}\nTitulo:{title}\n\n{text}\n",
         temperature=0.3,
-        max_tokens=1000,
+        max_tokens=1500,
     )
-    return response.choices[0].text.strip()
+    summary = response.choices[0].text.strip()
 
-def summarize_text_part(text, api_key):
-    """Generates a summary of the text using the OpenAI API."""
-    openai.api_key = api_key
+    save_summary(file_path, summary)
 
-    response = openai.Completion.create(
-        engine="text-davinci-003",
-        prompt=f"{text}\n\nFaça um resumo.",
-        temperature=0.3,
-        max_tokens=1000,
-    )
-    return response.choices[0].text.strip()
+    return summary
 
+def summarize_text_part(text):
+    warnings.filterwarnings("ignore", category=UserWarning, module="transformers")
+    warnings.simplefilter(action='ignore', category=FutureWarning)
+    logging.set_verbosity_error()
+
+    model = Summarizer()
+    summary = model(text, num_sentences=3)
+    return summary
 
 def continue_summary(text, api_key):
     """Continues a summary of the text using the OpenAI API."""
@@ -85,12 +115,14 @@ def split_transcription(text, title, api_key):
     chunks = split_text(text_with_title)
     summaries = []
     total_words = 0
+    remaining = len(chunks)
 
     console.print("Please wait while we are summarizing the text...")
-    for chunk in tqdm(enumerate(chunks, start=1), total=len(chunks), desc="Summarizing"):
-        summary = summarize_text_part(chunk, api_key)
+    for i, chunk in tqdm(enumerate(chunks, start=1), total=len(chunks), desc="Summarizing"):
+        summary = summarize_text_part(chunk)
         total_words += len(summary.split())
         summaries.append(summary)
+        remaining = remaining - 1
         if total_words > 3500:
             break
 
@@ -146,23 +178,27 @@ def run_whisper_command(chosen_video_path, language="Portuguese", output_dir="da
 
     return output_file
 
-def finish(summarized_transcription_json_formatted):
+def finish(summarized_transcription_json_formatted, file_path):
     end = console.input("\n[bold cyan]Continue Y | New transcription P [/bold cyan]").lower()
 
     if end == "y":
         summary = continue_summary(summarized_transcription_json_formatted, openai_api_key)
         console.print(f"\n[bold magenta]Continue:[/bold magenta]\n\n{summary}\n")
-        finish(summarized_transcription_json_formatted)
+        save_summary(file_path, summary)
+        finish(summarized_transcription_json_formatted, file_path)
 
     elif end == "p":
         main()
 
 def list_txt_files(path):
     txt_files = []
+    summaries_path = os.path.join(path, "summaries")
+
     for root, _, files in os.walk(path):
-        for file in files:
-            if file.endswith('.txt'):
-                txt_files.append(os.path.join(root, file))
+        if root != summaries_path:
+            for file in files:
+                if file.endswith('.txt'):
+                    txt_files.append(os.path.join(root, file))
     return txt_files
 
 def choose_text_file():
@@ -198,6 +234,7 @@ def main():
     console.print("[cyan]Please enter the following information:[/cyan]")
 
     option = first_choice()
+    file_path = ''
 
     if(not option):
         console.print(f"\n[bold red]You must choose an option[/bold red]\n")
@@ -222,7 +259,7 @@ def main():
 
     console.print(f"\n[bold magenta]Result:[/bold magenta]\n\n{summarized_transcription_json_formatted}\n")
 
-    finish(summarized_transcription_json_formatted)
+    finish(summarized_transcription_json_formatted, file_path)
 
 
 if __name__ == "__main__":
