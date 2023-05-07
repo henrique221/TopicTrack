@@ -6,6 +6,9 @@ import re
 import glob
 import subprocess
 import warnings
+import yt_dlp
+import tempfile
+from moviepy.editor import *
 
 from dotenv import load_dotenv
 from rich import print
@@ -72,7 +75,7 @@ def summarize_text(file_path):
     openai.api_key = openai_api_key
 
     if(option == 's'):
-        custom = 'Faça um resumo detalhado em português brasileiro sobre o seguinte:'
+        custom = 'Faça um resumo detalhado em português brasileiro sobre o seguinte, começe com Em resumo nessa transcrição:'
     elif(option == 'i'):
         custom = 'cite alguns tópicos importantes sobre o seguinte texto e explique cada topico'
 
@@ -229,6 +232,56 @@ def first_choice():
         return
     return option
 
+def ask_for_language():
+    console.print("[bold cyan]Enter the language you want to use for processing the video (e.g., Portuguese, English, Russian):[/bold cyan]")
+    language = input().strip()
+    return language
+
+def sanitize_filename(filename):
+    # Remove espaços e caracteres especiais, mantendo letras, números, hífens e sublinhados
+    return re.sub(r'[^a-zA-Z0-9_\-]+', '', filename.replace(' ', '_'))
+
+def download_video(video_url):
+    if not video_url:
+        return 'URL do vídeo não fornecida', 400
+
+    try:
+        ydl_opts = {
+            'format': 'bestvideo+bestaudio/best',
+            'outtmpl': os.path.join(tempfile.gettempdir(), '%(title)s.%(ext)s'),
+            'noplaylist': True
+        }
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=True)
+            video_file_path = ydl.prepare_filename(info)
+
+        # Converter vídeo em áudio usando moviepy
+        video = VideoFileClip(video_file_path)
+        unsanitized_audio_filename = os.path.splitext(os.path.basename(video_file_path))[0] + '.mp3'
+        sanitized_audio_filename = sanitize_filename(unsanitized_audio_filename) + '.mp3'  # Adiciona a extensão .mp3
+
+        output_dir = "data/media"
+        os.makedirs(output_dir, exist_ok=True)  # Cria o diretório de saída se não existir
+        audio_file_path = os.path.join(output_dir, sanitized_audio_filename)
+
+        video.audio.write_audiofile(audio_file_path, codec='mp3', ffmpeg_params=["-f", "mp3"])  # Especifique o codec 'mp3' e o formato 'mp3'
+
+        # Remover o arquivo de vídeo
+        os.remove(video_file_path)
+
+        console.print(f'\n\nCAMINHO DO AUDIO\n\n')
+        print(audio_file_path)
+        return audio_file_path
+    except Exception as e:
+        return f'Erro ao baixar o vídeo e converter em áudio: {str(e)}', 500
+
+
+def get_video_url():
+    console.print("[bold cyan]Enter the YouTube video URL you want to download and convert to audio:[/bold cyan]")
+    video_url = input().strip()
+    return video_url
+
 def main():
     console.print("\n[bold green]Welcome to the TopicTrack Video Summarizer![/bold green]")
     console.print("[cyan]Please enter the following information:[/cyan]")
@@ -243,14 +296,29 @@ def main():
         video_path = choose_video_file()
         if(not video_path):
             return
-
-        file_path = run_whisper_command(video_path)
-
         console.print(f"\n[bold cyan]Filepath:[/bold cyan]\n[magenta]{file_path}[/magenta]\n")
-
 
     elif(option == 't'):
         file_path = choose_text_file()
+        summarized_transcription = summarize_text(file_path)
+
+        pattern = re.compile(r'\n(\d?)')
+        summarized_transcription_json_formatted = pattern.sub(replace_newline, summarized_transcription)
+
+        console.print(f"\n[bold magenta]Result:[/bold magenta]\n\n{summarized_transcription_json_formatted}\n")
+
+        finish(summarized_transcription_json_formatted, file_path)
+    elif(option == 'd'):
+        video_url = get_video_url()
+        result = download_video(video_url)
+        if isinstance(result, tuple):  # Se houver um erro
+            console.print(f"\n[bold red]Error:[/bold red]\n[magenta]{result[0]}[/magenta]\n")
+        else:
+            console.print(f"\n[bold cyan]Audio file downloaded successfully.[/bold cyan]\n")
+    
+    language = ask_for_language()
+    file_path = run_whisper_command(result, language=language)
+    console.print(f"\n[bold cyan]Filepath:[/bold cyan]\n[magenta]{file_path}[/magenta]\n")
 
     summarized_transcription = summarize_text(file_path)
 
@@ -260,6 +328,16 @@ def main():
     console.print(f"\n[bold magenta]Result:[/bold magenta]\n\n{summarized_transcription_json_formatted}\n")
 
     finish(summarized_transcription_json_formatted, file_path)
+
+def first_choice():
+    console.print("[bold cyan]Choose an option:[/bold cyan]")
+    console.print("[bold cyan]m - Choose a video file from your computer[/bold cyan]")
+    console.print("[bold cyan]t - Choose a text file from your computer[/bold cyan]")
+    console.print("[bold cyan]d - Download and convert a YouTube video to audio[/bold cyan]")
+    console.print("[bold cyan]Enter 'm', 't', or 'd':[/bold cyan]")
+    return input().strip().lower()
+
+
 
 
 if __name__ == "__main__":
