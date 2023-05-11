@@ -160,7 +160,7 @@ def choose_video_file():
     chosen_file_without_spaces = chosen_file.replace(" ", "_")
 
     # Renomear o arquivo no sistema de arquivos, se necessário
-    if chosen_file != chosen_file_swithout_spaces:
+    if chosen_file != chosen_file_without_spaces:
         original_path = os.path.join(media_path, chosen_file)
         new_path = os.path.join(media_path, chosen_file_without_spaces)
         os.rename(original_path, new_path)
