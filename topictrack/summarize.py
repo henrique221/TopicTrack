@@ -157,7 +157,18 @@ def choose_video_file():
     file_choice = int(input("\nChoose a file by number: ")) - 1
     chosen_file = files[file_choice]
 
-    return os.path.join(media_path, chosen_file)
+    # Remove os espaços do nome do arquivo escolhido
+    chosen_file_without_spaces = chosen_file.replace(" ", "_")
+
+    # Renomear o arquivo no sistema de arquivos, se necessário
+    if chosen_file != chosen_file_without_spaces:
+        original_path = os.path.join(media_path, chosen_file)
+        new_path = os.path.join(media_path, chosen_file_without_spaces)
+        os.rename(original_path, new_path)
+        print(f"Arquivo renomeado de '{chosen_file}' para '{chosen_file_without_spaces}'")
+
+    return os.path.join(media_path, chosen_file_without_spaces)
+
 
 def run_whisper_command(chosen_video_path, language="Portuguese", output_dir="data", verbose=False):
     """Run the whisper command to process the video."""
