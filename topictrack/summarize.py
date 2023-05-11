@@ -20,7 +20,6 @@ from transformers import logging
 console = Console()
 
 load_dotenv()
-openai_api_key = os.getenv('OPENAI_API_KEY')  # Insert your API key here
 
 def split_text(text, max_length=2000):
     """Splits the text into smaller parts."""
@@ -54,12 +53,12 @@ def save_summary(file_path, summary):
     print(f"Summary saved to: {summary_file_path}")
 
 
-def summarize_text(file_path):
+def summarize_text(file_path, openai_api_key):
     option = console.input(f'\nDo you wish to have a ...\nSummarize (S)\nImportant topics (I)\n').lower()
 
     if(option != 's' and option != 'i'):
         console.print(f'\n[bold red]You need to choose an option:\n[/bold red]')
-        summarize_text(file_path)
+        summarize_text(file_path, openai_api_key)
 
     with open(file_path, 'r') as f:
         text = f.read()
@@ -161,7 +160,7 @@ def choose_video_file():
     chosen_file_without_spaces = chosen_file.replace(" ", "_")
 
     # Renomear o arquivo no sistema de arquivos, se necessário
-    if chosen_file != chosen_file_without_spaces:
+    if chosen_file != chosen_file_swithout_spaces:
         original_path = os.path.join(media_path, chosen_file)
         new_path = os.path.join(media_path, chosen_file_without_spaces)
         os.rename(original_path, new_path)
@@ -294,6 +293,8 @@ def get_video_url():
     return video_url
 
 def main():
+    openai_api_key = os.getenv('OPENAI_API_KEY')  # Insert your API key here
+
     console.print("\n[bold green]Welcome to the TopicTrack Video Summarizer![/bold green]")
     console.print("[cyan]Please enter the following information:[/cyan]")
 
@@ -312,7 +313,7 @@ def main():
 
     elif(option == 't'):
         file_path = choose_text_file()
-        summarized_transcription = summarize_text(file_path)
+        summarized_transcription = summarize_text(file_path, openai_api_key)
 
         pattern = re.compile(r'\n(\d?)')
         summarized_transcription_json_formatted = pattern.sub(replace_newline, summarized_transcription)
@@ -333,7 +334,7 @@ def main():
         file_path = run_whisper_command(result, language=language)
         console.print(f"\n[bold cyan]Filepath:[/bold cyan]\n[magenta]{file_path}[/magenta]\n")
 
-        summarized_transcription = summarize_text(file_path)
+        summarized_transcription = summarize_text(file_path, openai_api_key)
 
         pattern = re.compile(r'\n(\d?)')
         summarized_transcription_json_formatted = pattern.sub(replace_newline, summarized_transcription)
