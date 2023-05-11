@@ -296,6 +296,7 @@ def main():
         video_path = choose_video_file()
         if(not video_path):
             return
+        result = video_path
         console.print(f"\n[bold cyan]Filepath:[/bold cyan]\n[magenta]{file_path}[/magenta]\n")
 
     elif(option == 't'):
@@ -316,16 +317,17 @@ def main():
         else:
             console.print(f"\n[bold cyan]Audio file downloaded successfully.[/bold cyan]\n")
     
-    language = ask_for_language()
-    file_path = run_whisper_command(result, language=language)
-    console.print(f"\n[bold cyan]Filepath:[/bold cyan]\n[magenta]{file_path}[/magenta]\n")
+    if result :
+        language = ask_for_language()
+        file_path = run_whisper_command(result, language=language)
+        console.print(f"\n[bold cyan]Filepath:[/bold cyan]\n[magenta]{file_path}[/magenta]\n")
 
-    summarized_transcription = summarize_text(file_path)
+        summarized_transcription = summarize_text(file_path)
 
-    pattern = re.compile(r'\n(\d?)')
-    summarized_transcription_json_formatted = pattern.sub(replace_newline, summarized_transcription)
+        pattern = re.compile(r'\n(\d?)')
+        summarized_transcription_json_formatted = pattern.sub(replace_newline, summarized_transcription)
 
-    console.print(f"\n[bold magenta]Result:[/bold magenta]\n\n{summarized_transcription_json_formatted}\n")
+        console.print(f"\n[bold magenta]Result:[/bold magenta]\n\n{summarized_transcription_json_formatted}\n")
 
     finish(summarized_transcription_json_formatted, file_path)
 
